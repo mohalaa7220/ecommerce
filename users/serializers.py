@@ -10,7 +10,7 @@ class AdminSignUpSerializer(serializers.ModelSerializer):
         model = User
         fields = ('username', 'email', 'password', 'gender', 'role')
         extra_kwargs = {'password': {'write_only': True},
-                        'role': {'default': 'admin'}}
+                        'role': {'default': 'admin'}, 'is_staff': True, 'is_superuser': True}
 
     def validate(self, attrs):
         email_exits = User.objects.filter(email=attrs.get('email')).exists()
@@ -54,7 +54,7 @@ class UserDataSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ('id', 'username', 'email', 'role', 'is_staff',
+        fields = ('id', 'username', 'email', 'role', 'is_staff', 'is_superuser',
                   'gender', 'join_date')
 
 

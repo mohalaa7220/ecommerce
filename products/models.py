@@ -43,9 +43,9 @@ class Product(models.Model):
         self.name = self.name.lower()
 
         # price_currency check
-        if self.price_currency == 'USD':
+        if self.price_currency == 'usd':
             self.price *= 3
-        elif self.price_currency == 'INR':
+        elif self.price_currency == 'inr':
             self.price *= 1
 
         super().save(*args, **kwargs)

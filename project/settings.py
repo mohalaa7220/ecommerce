@@ -31,6 +31,7 @@ INSTALLED_APPS = [
     # installed apps
     "users",
     "products",
+    'order',
 
     # apps libraries
     'rest_framework',
