@@ -7,5 +7,5 @@ urlpatterns = [
     path('silk/', include('silk.urls', namespace='silk')),
     path('admin/', admin.site.urls),
     path('api/auth/', include('users.urls')),
-    # path('api/product/', include('product.urls')),
+    path('api/product/', include('products.urls')),
 ]
