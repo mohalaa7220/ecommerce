@@ -26,6 +26,19 @@ class ProductView(generics.ListCreateAPIView):
         return Response({"message": "Product created successfully"}, status=status.HTTP_200_OK)
 
 
+class ProductDetails(generics.RetrieveUpdateDestroyAPIView):
+    serializer_class = ProductSerializer
+    queryset = Product.objects.select_related(
+        'category__sub_category').prefetch_related('colors')
+
+    def update(self, request, pk=None):
+        product = self.get_object()
+        serializer = AddProductSerializer(product, data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response({"message": "Product Update successfully"}, status=status.HTTP_200_OK)
+
+
 # ========= ColorsView ========
 class ColorsView(generics.ListCreateAPIView):
     permission_classes = [IsAdminOrReadOnly]
