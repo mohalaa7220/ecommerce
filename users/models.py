@@ -19,8 +19,6 @@ class User(AbstractUser):
     gender = models.CharField(
         max_length=10, choices=GENDER_CHOICES, null=True, blank=True)
     otp = models.CharField(max_length=4, null=True, blank=True)
-    is_staff = models.BooleanField(default=True)
-    is_superuser = models.BooleanField(default=True)
     date_joined = models.DateTimeField(
         default=timezone.now, null=True, blank=True)
 
