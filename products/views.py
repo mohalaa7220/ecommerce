@@ -1,12 +1,14 @@
 from .serializers import (
-    AddProductSerializer, ProductSerializer, CategorySerializer, AddCategorySerializer, ColorSerializer)
+    AddProductSerializer, ProductSerializer, CategorySerializer, AddCategorySerializer, ColorSerializer, AddRatingSerializer, RatingSerializer)
 from .models import (Product, Colors, Category, Rating)
 from .filtersProduct import ProductFilter
 from .cursorPagination import ProductsPagination
-from rest_framework import generics, status
+from rest_framework import generics, status, views
 from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
 from project.CustomPermission import IsAdminOrReadOnly
+from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticated
+from django.shortcuts import get_object_or_404
 
 
 # ========= ProductView ========
@@ -63,3 +65,20 @@ class CategoryView(generics.ListCreateAPIView):
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response({"message": "Category created successfully"}, status=status.HTTP_200_OK)
+
+
+# ========= Rating ========
+class RatingView(views.APIView):
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+    def post(self, request, pk=None):
+        serializer = AddRatingSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save(user=request.user)
+        return Response({"message": "Rating added successfully"}, status=status.HTTP_200_OK)
+
+    def get(self, request, pk=None):
+        product = get_object_or_404(Product, pk=pk)
+        query = product.product_rating.prefetch_related('user')
+        serializer = RatingSerializer(query, many=True).data
+        return Response(data=serializer, status=status.HTTP_200_OK)

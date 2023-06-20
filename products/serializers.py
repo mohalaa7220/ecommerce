@@ -49,3 +49,18 @@ class ProductSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
         fields = '__all__'
+
+
+# ================== Rating ==================
+class AddRatingSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Rating
+        fields = "__all__"
+
+
+class RatingSerializer(serializers.ModelSerializer):
+    user = serializers.StringRelatedField()
+
+    class Meta:
+        model = Rating
+        exclude = ('product',)
