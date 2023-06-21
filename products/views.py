@@ -82,3 +82,13 @@ class RatingView(views.APIView):
         query = product.product_rating.prefetch_related('user')
         serializer = RatingSerializer(query, many=True).data
         return Response(data=serializer, status=status.HTTP_200_OK)
+
+
+class RatingDetails(generics.RetrieveUpdateDestroyAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = RatingSerializer
+
+    def get_queryset(self):
+        query = Rating.objects.filter(
+            user=self.request.user).select_related('product')
+        return query
