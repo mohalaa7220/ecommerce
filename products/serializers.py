@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from .models import (Product, Colors, Category, Rating)
 from rest_framework.validators import ValidationError
+from django.db.models import Avg
 
 
 class ColorSerializer(serializers.ModelSerializer):
@@ -45,10 +46,14 @@ class AddProductSerializer(serializers.ModelSerializer):
 class ProductSerializer(serializers.ModelSerializer):
     colors = ColorSerializer(many=True, read_only=True)
     category = CategorySerializer(read_only=True)
+    rating = serializers.SerializerMethodField()
 
     class Meta:
         model = Product
         fields = '__all__'
+
+    def get_rating(self, obj):
+        return Rating.objects.filter(product=obj).aggregate(Avg('rating'))['rating__avg']
 
 
 # ================== Rating ==================
