@@ -30,6 +30,7 @@ class Product(models.Model):
     sizes = models.CharField(max_length=255)
     quantity = models.PositiveIntegerField()
     in_stock = models.BooleanField(default=True)
+    image = models.ImageField(upload_to='images', null=True, blank=True)
 
     price_currency = models.CharField(
         max_length=3, choices=price_choices, default='usd')

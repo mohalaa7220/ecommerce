@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -164,3 +165,11 @@ EMAIL_USE_SSL = True
 EMAIL_PORT = 465
 EMAIL_HOST_USER = 'ma722072207220@gmail.com'
 EMAIL_HOST_PASSWORD = 'motazhtuhiyrgtuh'
+
+STATIC_URL = 'static/'
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'static')
+]
+
+# Media Files
+MEDIA_ROOT = os.path.join(BASE_DIR, 'static/')
