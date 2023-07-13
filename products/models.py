@@ -1,15 +1,39 @@
+from typing import Iterable, Optional
 from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
 from users.models import User
+from django.contrib.postgres.fields import ArrayField
+import cloudinary.uploader
 
 
 class Category(models.Model):
     name = models.CharField(max_length=100)
-    sub_category = models.ForeignKey(
-        'self', on_delete=models.CASCADE, related_name='sub_category_parent', null=True, blank=True)
+    image = models.ImageField(null=True, blank=True)
+    image_url = models.URLField(max_length=2220000, blank=True, null=True)
 
     def __str__(self):
         return self.name
+
+    def save(self, *args, **kwargs):
+        if self.image:
+            response = cloudinary.uploader.upload(self.image)
+            self.image_url = response['url']
+        self.name = self.name.lower()
+        super().save(*args, **kwargs)
+
+
+class SubCategory(models.Model):
+    parent = models.ForeignKey(
+        Category, on_delete=models.CASCADE, related_name='parent_category', blank=True, null=True)
+    name = models.CharField(max_length=100)
+
+    def __str__(self):
+        return self.name
+
+    def save(self, *args, **kwargs):
+
+        self.name = self.name.lower()
+        super().save(*args, **kwargs)
 
 
 class Colors(models.Model):
@@ -30,14 +54,17 @@ class Product(models.Model):
     sizes = models.CharField(max_length=255)
     quantity = models.PositiveIntegerField()
     in_stock = models.BooleanField(default=True)
-    image = models.ImageField(upload_to='images', null=True, blank=True)
-
+    original_image = models.ImageField(null=True, blank=True)
+    original_image_url = models.URLField(
+        max_length=2220000, blank=True, null=True)
     price_currency = models.CharField(
         max_length=3, choices=price_choices, default='usd')
     price = models.DecimalField(max_digits=10, decimal_places=2)
     category = models.ForeignKey(
         Category, on_delete=models.CASCADE, related_name='product_category')
     colors = models.ManyToManyField('Colors',  related_name='product_colors')
+    images = ArrayField(models.ImageField(), blank=True, null=True)
+    images_url = models.URLField(max_length=2220000, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True, null=True)
     updated_at = models.DateTimeField(auto_now=True, null=True)
 
@@ -45,6 +72,18 @@ class Product(models.Model):
         ordering = ('-created_at',)
 
     def save(self, *args, **kwargs):
+
+        if self.images:
+            images_url = []
+            for image_data in self.images:
+                response = cloudinary.uploader.upload(image_data)
+                images_url.append(response['url'])
+            self.images_url = images_url
+
+        if self.original_image:
+            response = cloudinary.uploader.upload(self.original_image)
+            self.original_image_url = response['url']
+
         # quantity check
         if self.quantity < 0:
             self.in_stock = False

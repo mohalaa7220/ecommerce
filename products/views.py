@@ -1,6 +1,6 @@
 from .serializers import (
-    AddProductSerializer, ProductSerializer, CategorySerializer, AddCategorySerializer, ColorSerializer, AddRatingSerializer, RatingSerializer)
-from .models import (Product, Colors, Category, Rating)
+    AddProductSerializer, ProductSerializer, CategorySerializer, AddCategorySerializer, AddSubCategorySerializer, SubCategorySerializer, ParentCategorySerializer, ColorSerializer, AddRatingSerializer, RatingSerializer)
+from .models import (Product, Colors, Category, SubCategory, Rating)
 from .filtersProduct import ProductFilter
 from .cursorPagination import ProductsPagination
 from rest_framework import generics, status, views
@@ -58,13 +58,60 @@ class ColorsView(generics.ListCreateAPIView):
 class CategoryView(generics.ListCreateAPIView):
     permission_classes = [IsAdminOrReadOnly]
     serializer_class = CategorySerializer
-    queryset = Category.objects.select_related('sub_category')
+    queryset = Category.objects.all()
 
     def post(self, request):
         serializer = AddCategorySerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response({"message": "Category created successfully"}, status=status.HTTP_200_OK)
+
+
+class CategoryDetails(generics.RetrieveUpdateDestroyAPIView):
+    permission_classes = [IsAdminOrReadOnly]
+    serializer_class = CategorySerializer
+    queryset = Category.objects.all()
+
+    def put(self, request, pk=None):
+        instance = get_object_or_404(Category, pk=pk)
+        serializer = self.serializer_class(
+            instance, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response({"message": "Category updated successfully"}, status=status.HTTP_200_OK)
+
+
+# ========= SubCategory View ========
+class SubCategoryView(generics.ListCreateAPIView):
+    permission_classes = [IsAdminOrReadOnly]
+    serializer_class = SubCategorySerializer
+    queryset = SubCategory.objects.select_related('parent')
+
+    def post(self, request):
+        serializer = AddSubCategorySerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response({"message": "Category created successfully"}, status=status.HTTP_200_OK)
+
+
+class SubCategoryDetails(generics.RetrieveUpdateDestroyAPIView):
+    permission_classes = [IsAdminOrReadOnly]
+    serializer_class = SubCategorySerializer
+    queryset = SubCategory.objects.select_related('parent')
+
+    def put(self, request, pk=None):
+        instance = get_object_or_404(Category, pk=pk)
+        serializer = self.serializer_class(
+            instance, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response({"message": "Category updated successfully"}, status=status.HTTP_200_OK)
+
+
+# ========= Parent Category ========
+class ParentCategory(generics.ListAPIView):
+    queryset = Category.objects.prefetch_related('parent_category')
+    serializer_class = ParentCategorySerializer
 
 
 # ========= Rating ========

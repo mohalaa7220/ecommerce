@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import (Product, Colors, Category, Rating)
+from .models import (Product, Colors, Category, SubCategory, Rating)
 from rest_framework.validators import ValidationError
 from django.db.models import Avg
 
@@ -16,26 +16,50 @@ class ColorSerializer(serializers.ModelSerializer):
         return super().validate(attrs)
 
 
+# ======================== Category Serializer =================
 class AddCategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Category
         fields = '__all__'
 
     def validate(self, attrs):
-        colors_name = Category.objects.filter(name=attrs.get('name')).exists()
-        if colors_name:
+        category_name = Category.objects.filter(
+            name=attrs.get('name')).exists()
+        if category_name:
             raise ValidationError({"message": "Name already exists"})
         return super().validate(attrs)
 
 
 class CategorySerializer(serializers.ModelSerializer):
-    sub_category = serializers.CharField()
-
     class Meta:
         model = Category
+        exclude = ('image', )
+
+
+# ======================== Sub Category Serializer =================
+class AddSubCategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SubCategory
         fields = '__all__'
 
 
+class SubCategorySerializer(serializers.ModelSerializer):
+    parent = serializers.StringRelatedField()
+
+    class Meta:
+        model = SubCategory
+        fields = '__all__'
+
+
+class ParentCategorySerializer(serializers.ModelSerializer):
+    subcategories = SubCategorySerializer(many=True, source='parent_category')
+
+    class Meta:
+        model = Category
+        fields = ['id', 'name', 'subcategories']
+
+
+# ======================== Product Serializer =================
 class AddProductSerializer(serializers.ModelSerializer):
 
     class Meta:

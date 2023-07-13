@@ -21,6 +21,4 @@ def send_otp_via_email(email):
     message = f'Your code is {otp}'
     email_from = settings.EMAIL_HOST_USER
     send_mail(subject, message, email_from, [email])
-    user_obj = User.objects.get(email=email)
-    user_obj.otp = otp
-    user_obj.save()
+    User.objects.filter(email=email).update(otp=otp)

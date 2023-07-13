@@ -1,5 +1,7 @@
 import os
 from pathlib import Path
+import cloudinary
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -160,7 +162,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
 AUTH_USER_MODEL = 'users.User'
-AUTHENTICATION_BACKENDS = ['project.backends.EmailBackend']
+# AUTHENTICATION_BACKENDS = ['project.backends.EmailBackend']
 
 
 # Email Configuration
@@ -178,3 +180,12 @@ STATICFILES_DIRS = [
 
 # Media Files
 MEDIA_ROOT = os.path.join(BASE_DIR, 'static/')
+
+
+# ========= cloudinary ==========
+cloudinary.config(
+    cloud_name="dw18qcase",
+    api_key="642133494324994",
+    api_secret="Rhtetx9QDpz6QOoQOnmGdQE8aMI",
+    secure=True
+)
