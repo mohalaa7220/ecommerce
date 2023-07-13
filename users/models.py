@@ -31,7 +31,7 @@ class User(AbstractUser):
     def formatted_date_joined(self):
         return self.date_joined.strftime("%Y-%m-%d %H:%M:%S")
 
-    def save(self, *args, **kwargs):
-        self.gender = self.gender.lower()
-        self.role = self.role.lower()
-        super(User, self).save(*args, **kwargs)
+    # def save(self, *args, **kwargs):
+    #     self.gender = self.gender.lower()
+    #     self.role = self.role.lower()
+    #     super(User, self).save(*args, **kwargs)

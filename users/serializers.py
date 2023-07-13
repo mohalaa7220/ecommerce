@@ -30,8 +30,10 @@ class GuestSignUpSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ('username', 'email', 'password', 'gender', 'role')
-        extra_kwargs = {'password': {'write_only': True},
-                        'role': {'default': 'guest'}}
+        extra_kwargs = {
+            'password': {'write_only': True},
+            'role': {'default': 'guest'}
+        }
 
     def validate(self, attrs):
         email_exits = User.objects.filter(email=attrs.get('email')).exists()
@@ -65,10 +67,15 @@ class ResetPasswordSerializer(serializers.Serializer):
     email = serializers.EmailField()
 
     def validate(self, attrs):
-        email_exists = User.objects.filter(email=attrs["email"]).exists()
-        if email_exists == False:
+        email = attrs.get("email")
+
+        if not email:
+            raise ValidationError({"message": "Email is required"})
+
+        if not User.objects.filter(email=email).exists():
             raise ValidationError({"message": "Email does not exist"})
-        return super().validate(attrs)
+
+        return attrs
 
 
 class VerifyOtpSerializer(serializers.Serializer):
