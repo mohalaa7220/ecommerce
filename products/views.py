@@ -16,7 +16,7 @@ class ProductView(generics.ListCreateAPIView):
     permission_classes = [IsAdminOrReadOnly]
     serializer_class = ProductSerializer
     queryset = Product.objects.select_related(
-        'category__sub_category').prefetch_related('colors')
+        'category').prefetch_related('colors')
     filterset_class = ProductFilter
     filter_backends = [DjangoFilterBackend]
     pagination_class = ProductsPagination
@@ -31,7 +31,7 @@ class ProductView(generics.ListCreateAPIView):
 class ProductDetails(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = ProductSerializer
     queryset = Product.objects.select_related(
-        'category__sub_category').prefetch_related('colors')
+        'category').prefetch_related('colors')
 
     def update(self, request, pk=None):
         product = self.get_object()

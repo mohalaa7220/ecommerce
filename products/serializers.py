@@ -71,13 +71,17 @@ class ProductSerializer(serializers.ModelSerializer):
     colors = ColorSerializer(many=True, read_only=True)
     category = CategorySerializer(read_only=True)
     rating = serializers.SerializerMethodField()
+    images_url = serializers.SerializerMethodField()
 
     class Meta:
         model = Product
-        fields = '__all__'
+        exclude = ('original_image', 'images')
 
     def get_rating(self, obj):
         return Rating.objects.filter(product=obj).aggregate(Avg('rating'))['rating__avg']
+
+    def get_images_url(self, obj):
+        return eval(obj.images_url)
 
 
 # ================== Rating ==================
