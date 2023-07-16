@@ -1,7 +1,15 @@
 from rest_framework import serializers
-from .models import (Product, Colors, Category, SubCategory, Rating)
+from .models import (Product, ProductImage, Colors,
+                     Category, SubCategory, Rating)
 from rest_framework.validators import ValidationError
 from django.db.models import Avg
+
+
+class ProductImageSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = ProductImage
+        fields = ('image_url',)
 
 
 class ColorSerializer(serializers.ModelSerializer):
@@ -61,27 +69,37 @@ class ParentCategorySerializer(serializers.ModelSerializer):
 
 # ======================== Product Serializer =================
 class AddProductSerializer(serializers.ModelSerializer):
+    images = serializers.ListField(child=serializers.ImageField())
 
     class Meta:
         model = Product
-        fields = '__all__'
+        fields = "__all__"
+
+    def create(self, validated_data):
+        images = validated_data.pop('images')
+        colors = validated_data.pop('colors')
+        product = Product.objects.create(**validated_data)
+
+        for image in images:
+            ProductImage.objects.create(image=image, product=product)
+
+        product.colors.set(colors)
+
+        return product
 
 
 class ProductSerializer(serializers.ModelSerializer):
     colors = ColorSerializer(many=True, read_only=True)
     category = CategorySerializer(read_only=True)
     rating = serializers.SerializerMethodField()
-    images_url = serializers.SerializerMethodField()
+    product_images = ProductImageSerializer(many=True)
 
     class Meta:
         model = Product
-        exclude = ('original_image', 'images')
+        exclude = ('original_image',)
 
     def get_rating(self, obj):
         return Rating.objects.filter(product=obj).aggregate(Avg('rating'))['rating__avg']
-
-    def get_images_url(self, obj):
-        return eval(obj.images_url)
 
 
 # ================== Rating ==================

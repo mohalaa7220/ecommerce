@@ -54,7 +54,8 @@ class Product(models.Model):
     sizes = models.CharField(max_length=255)
     quantity = models.PositiveIntegerField()
     in_stock = models.BooleanField(default=True)
-    original_image = models.ImageField(null=True, blank=True)
+    original_image = models.ImageField(
+        null=True, blank=True, upload_to='images/')
     original_image_url = models.URLField(
         max_length=2220000, blank=True, null=True)
     price_currency = models.CharField(
@@ -63,8 +64,6 @@ class Product(models.Model):
     category = models.ForeignKey(
         Category, on_delete=models.CASCADE, related_name='product_category')
     colors = models.ManyToManyField('Colors',  related_name='product_colors')
-    images = ArrayField(models.ImageField(), blank=True, null=True)
-    images_url = models.URLField(max_length=2220000, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True, null=True)
     updated_at = models.DateTimeField(auto_now=True, null=True)
 
@@ -72,13 +71,6 @@ class Product(models.Model):
         ordering = ('-created_at',)
 
     def save(self, *args, **kwargs):
-
-        if self.images:
-            images_url = []
-            for image_data in self.images:
-                response = cloudinary.uploader.upload(image_data)
-                images_url.append(response['url'])
-            self.images_url = images_url
 
         if self.original_image:
             response = cloudinary.uploader.upload(self.original_image)
@@ -117,3 +109,17 @@ class Rating(models.Model):
 
     def __str__(self):
         return self.product.name
+
+
+class ProductImage(models.Model):
+    product = models.ForeignKey(
+        Product, on_delete=models.CASCADE, related_name='product_images', null=True, blank=True)
+    image = models.ImageField(
+        null=True, blank=True, upload_to='images/')
+    image_url = models.URLField(max_length=2220000, blank=True, null=True)
+
+    def save(self, *args, **kwargs):
+        if self.image:
+            response = cloudinary.uploader.upload(self.image)
+            self.image_url = response['url']
+        return super().save(*args, **kwargs)

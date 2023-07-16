@@ -16,7 +16,7 @@ class ProductView(generics.ListCreateAPIView):
     permission_classes = [IsAdminOrReadOnly]
     serializer_class = ProductSerializer
     queryset = Product.objects.select_related(
-        'category').prefetch_related('colors')
+        'category').prefetch_related('colors', 'product_images')
     filterset_class = ProductFilter
     filter_backends = [DjangoFilterBackend]
     pagination_class = ProductsPagination
@@ -35,7 +35,8 @@ class ProductDetails(generics.RetrieveUpdateDestroyAPIView):
 
     def update(self, request, pk=None):
         product = self.get_object()
-        serializer = AddProductSerializer(product, data=request.data)
+        serializer = AddProductSerializer(
+            product, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response({"message": "Product Update successfully"}, status=status.HTTP_200_OK)
