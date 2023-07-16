@@ -9,6 +9,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from project.CustomPermission import IsAdminOrReadOnly
 from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticated
 from django.shortcuts import get_object_or_404
+from django.db.models import Avg
 
 
 # ========= ProductView ========
@@ -16,7 +17,9 @@ class ProductView(generics.ListCreateAPIView):
     permission_classes = [IsAdminOrReadOnly]
     serializer_class = ProductSerializer
     queryset = Product.objects.select_related(
-        'category').prefetch_related('colors', 'product_images')
+        'category').prefetch_related('colors', 'product_images').annotate(
+        rating=Avg('product_rating__rating')
+    ).order_by('-created_at')
     filterset_class = ProductFilter
     filter_backends = [DjangoFilterBackend]
     pagination_class = ProductsPagination

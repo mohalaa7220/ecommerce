@@ -79,11 +79,9 @@ class AddProductSerializer(serializers.ModelSerializer):
         images = validated_data.pop('images')
         colors = validated_data.pop('colors')
         product = Product.objects.create(**validated_data)
-
-        for image in images:
-            ProductImage.objects.create(image=image, product=product)
-
         product.colors.set(colors)
+        ProductImage.objects.bulk_create(
+            [ProductImage(image=image, product=product) for image in images])
 
         return product
 
@@ -91,15 +89,15 @@ class AddProductSerializer(serializers.ModelSerializer):
 class ProductSerializer(serializers.ModelSerializer):
     colors = ColorSerializer(many=True, read_only=True)
     category = CategorySerializer(read_only=True)
-    rating = serializers.SerializerMethodField()
     product_images = ProductImageSerializer(many=True)
+    rating = serializers.SerializerMethodField()
 
     class Meta:
         model = Product
         exclude = ('original_image',)
 
     def get_rating(self, obj):
-        return Rating.objects.filter(product=obj).aggregate(Avg('rating'))['rating__avg']
+        return obj.rating
 
 
 # ================== Rating ==================
