@@ -1,3 +1,4 @@
+from django.db import transaction
 from rest_framework import serializers
 from .models import (Product, ProductImage, Colors,
                      Category, SubCategory, Rating)
@@ -70,19 +71,20 @@ class ParentCategorySerializer(serializers.ModelSerializer):
 # ======================== Product Serializer =================
 class AddProductSerializer(serializers.ModelSerializer):
     images = serializers.ListField(child=serializers.ImageField())
+    in_stock = serializers.BooleanField(default=True)
 
     class Meta:
         model = Product
         fields = "__all__"
 
     def create(self, validated_data):
-        images = validated_data.pop('images')
-        colors = validated_data.pop('colors')
-        product = Product.objects.create(**validated_data)
-        product.colors.set(colors)
+        images = validated_data.pop('images', [])
+        colors = validated_data.pop('colors', [])
+        product = super().create(validated_data)
         ProductImage.objects.bulk_create(
-            [ProductImage(image=image, product=product) for image in images])
+            [ProductImage(product=product, image=image)for image in images])
 
+        product.colors.set(colors)
         return product
 
 

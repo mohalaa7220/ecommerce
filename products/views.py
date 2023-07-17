@@ -16,13 +16,11 @@ from django.db.models import Avg
 class ProductView(generics.ListCreateAPIView):
     permission_classes = [IsAdminOrReadOnly]
     serializer_class = ProductSerializer
-    queryset = Product.objects.select_related(
-        'category').prefetch_related('colors', 'product_images').annotate(
-        rating=Avg('product_rating__rating')
-    ).order_by('-created_at')
     filterset_class = ProductFilter
     filter_backends = [DjangoFilterBackend]
     pagination_class = ProductsPagination
+    queryset = Product.objects.select_related('category').prefetch_related(
+        'colors', 'product_images').annotate(rating=Avg('product_rating__rating')).order_by('-created_at')
 
     def post(self, request):
         serializer = AddProductSerializer(data=request.data)

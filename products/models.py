@@ -58,8 +58,6 @@ class Product(models.Model):
         null=True, blank=True, upload_to='images/')
     original_image_url = models.URLField(
         max_length=2220000, blank=True, null=True)
-    price_currency = models.CharField(
-        max_length=3, choices=price_choices, default='usd')
     price = models.DecimalField(max_digits=10, decimal_places=2)
     category = models.ForeignKey(
         Category, on_delete=models.CASCADE, related_name='product_category')
@@ -71,22 +69,16 @@ class Product(models.Model):
         ordering = ('-created_at',)
 
     def save(self, *args, **kwargs):
+        self.name = self.name.lower()
 
         if self.original_image:
             response = cloudinary.uploader.upload(self.original_image)
             self.original_image_url = response['url']
 
         # quantity check
-        if self.quantity < 0:
+        if self.quantity < 0 or self.quantity == 0:
             self.in_stock = False
-
-        self.name = self.name.lower()
-
-        # price_currency check
-        if self.price_currency == 'usd':
-            self.price *= 3
-        elif self.price_currency == 'inr':
-            self.price *= 1
+            self.refresh_from_db(fields=['in_stock'])
 
         super().save(*args, **kwargs)
 
