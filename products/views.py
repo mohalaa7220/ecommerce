@@ -12,7 +12,7 @@ from django.shortcuts import get_object_or_404
 from django.db.models import Avg
 
 
-# ========= ProductView ========
+# ========= Product View (add / get products) ========
 class ProductView(generics.ListCreateAPIView):
     permission_classes = [IsAdminOrReadOnly]
     serializer_class = ProductSerializer
@@ -30,9 +30,10 @@ class ProductView(generics.ListCreateAPIView):
 
 
 class ProductDetails(generics.RetrieveUpdateDestroyAPIView):
+    permission_classes = [IsAdminOrReadOnly]
     serializer_class = ProductSerializer
-    queryset = Product.objects.select_related(
-        'category').prefetch_related('colors')
+    queryset = Product.objects.select_related('category').prefetch_related(
+        'colors', 'product_images').annotate(rating=Avg('product_rating__rating')).order_by('-created_at')
 
     def update(self, request, pk=None):
         product = self.get_object()
@@ -43,7 +44,7 @@ class ProductDetails(generics.RetrieveUpdateDestroyAPIView):
         return Response({"message": "Product Update successfully"}, status=status.HTTP_200_OK)
 
 
-# ========= ColorsView ========
+# ========= Colors View (add / get) ========
 class ColorsView(generics.ListCreateAPIView):
     permission_classes = [IsAdminOrReadOnly]
     serializer_class = ColorSerializer
@@ -54,6 +55,13 @@ class ColorsView(generics.ListCreateAPIView):
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response({"message": "Colors created successfully"}, status=status.HTTP_200_OK)
+
+
+# ========= Colors View Details (get / update / delete) ========
+class ColorDetailsView(generics.RetrieveUpdateDestroyAPIView):
+    permission_classes = [IsAdminOrReadOnly]
+    serializer_class = ColorSerializer
+    queryset = Colors.objects.all()
 
 
 # ========= CategoryView ========
@@ -112,6 +120,11 @@ class SubCategoryDetails(generics.RetrieveUpdateDestroyAPIView):
 
 # ========= Parent Category ========
 class ParentCategory(generics.ListAPIView):
+    queryset = Category.objects.prefetch_related('parent_category')
+    serializer_class = ParentCategorySerializer
+
+
+class ParentCategoryDetails(generics.RetrieveUpdateDestroyAPIView):
     queryset = Category.objects.prefetch_related('parent_category')
     serializer_class = ParentCategorySerializer
 

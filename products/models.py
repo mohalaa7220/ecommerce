@@ -1,9 +1,9 @@
-from typing import Iterable, Optional
 from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
 from users.models import User
-from django.contrib.postgres.fields import ArrayField
 import cloudinary.uploader
+from django.db.models.signals import pre_delete
+from django.dispatch import receiver
 
 
 class Category(models.Model):
@@ -84,6 +84,14 @@ class Product(models.Model):
 
     def __str__(self):
         return self.name
+
+
+# ========== delete_image_from_cloud ==============
+@receiver(pre_delete, sender=Product)
+def delete_image_from_cloud(sender, instance, **kwargs):
+    if instance.original_image_url:
+        print('delete_image_from_cloud')
+        cloudinary.uploader.destroy(instance.original_image_url)
 
 
 class Rating(models.Model):

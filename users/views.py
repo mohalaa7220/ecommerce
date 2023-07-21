@@ -9,7 +9,8 @@ from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.authentication import TokenAuthentication
 from .models import User
 from .serializers import (
-    UserDataSerializer, AdminSignUpSerializer, GuestSignUpSerializer, ResetPasswordSerializer, VerifyOtpSerializer, PasswordSerializer)
+    UserDataSerializer, AdminSignUpSerializer, GuestSignUpSerializer, ResetPasswordSerializer,
+    VerifyOtpSerializer, PasswordSerializer)
 from project.email_send import send_otp_via_email
 from django.contrib.auth.hashers import make_password
 from django.shortcuts import get_object_or_404
@@ -52,6 +53,14 @@ class LoginView(APIView):
             }, status=status.HTTP_200_OK)
         else:
             return Response({'message': 'Email or Password is Invalid'}, status=status.HTTP_401_UNAUTHORIZED)
+
+
+# ========== Profile =================
+class ProfileView(generics.ListAPIView):
+    serializer_class = UserDataSerializer
+
+    def get_queryset(self):
+        return User.objects.filter(id=self.request.user.id)
 
 
 # ========== Logout =================

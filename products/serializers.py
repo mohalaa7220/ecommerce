@@ -53,11 +53,10 @@ class AddSubCategorySerializer(serializers.ModelSerializer):
 
 
 class SubCategorySerializer(serializers.ModelSerializer):
-    parent = serializers.StringRelatedField()
 
     class Meta:
         model = SubCategory
-        fields = '__all__'
+        exclude = ('parent',)
 
 
 class ParentCategorySerializer(serializers.ModelSerializer):

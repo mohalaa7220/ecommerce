@@ -5,12 +5,10 @@ from .models import User
 
 
 # ========== Register ==========
-class AdminSignUpSerializer(serializers.ModelSerializer):
+class UserBaseRegistration(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ('username', 'email', 'password', 'gender', 'role')
-        extra_kwargs = {'password': {'write_only': True},
-                        'role': {'default': 'admin'}, 'is_staff': True, 'is_superuser': True}
 
     def validate(self, attrs):
         email_exits = User.objects.filter(email=attrs.get('email')).exists()
@@ -26,27 +24,25 @@ class AdminSignUpSerializer(serializers.ModelSerializer):
         return user
 
 
-class GuestSignUpSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = User
-        fields = ('username', 'email', 'password', 'gender', 'role')
+# ============== Admin Register =================
+class AdminSignUpSerializer(UserBaseRegistration):
+    class Meta(UserBaseRegistration.Meta):
+        fields = UserBaseRegistration.Meta.fields
+        extra_kwargs = {
+            'password': {'write_only': True},
+            'role': {'default': 'admin'},
+            'is_staff': True, 'is_superuser': True
+        }
+
+
+# ============== Guest Register =================
+class GuestSignUpSerializer(UserBaseRegistration):
+    class Meta(UserBaseRegistration.Meta):
+        fields = UserBaseRegistration.Meta.fields
         extra_kwargs = {
             'password': {'write_only': True},
             'role': {'default': 'guest'}
         }
-
-    def validate(self, attrs):
-        email_exits = User.objects.filter(email=attrs.get('email')).exists()
-        if not attrs.get('gender'):
-            raise ValidationError({"message": "gender is required"})
-
-        if email_exits:
-            raise ValidationError({"message": "email is used"})
-        return super().validate(attrs)
-
-    def create(self, validated_data):
-        user = User.objects.create_user(**validated_data)
-        return user
 
 
 # ========== User Data ==========
