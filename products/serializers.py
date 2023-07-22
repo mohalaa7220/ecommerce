@@ -80,8 +80,8 @@ class AddProductSerializer(serializers.ModelSerializer):
         images = validated_data.pop('images', [])
         colors = validated_data.pop('colors', [])
         product = super().create(validated_data)
-        ProductImage.objects.bulk_create(
-            [ProductImage(product=product, image=image)for image in images])
+        for image in images:
+            ProductImage.objects.create(product=product, image=image)
 
         product.colors.set(colors)
         return product

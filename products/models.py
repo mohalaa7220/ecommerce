@@ -4,6 +4,7 @@ from users.models import User
 import cloudinary.uploader
 from django.db.models.signals import pre_delete
 from django.dispatch import receiver
+from django.contrib.postgres.fields import ArrayField
 
 
 class Category(models.Model):
@@ -49,9 +50,15 @@ class Product(models.Model):
         ('inr', 'inr'),
     )
 
+    size_choices = (
+        ('small', 'small'),
+        ('medium', 'medium'),
+        ('large', 'large'),
+    )
+
     name = models.CharField(max_length=255)
     desc = models.TextField()
-    sizes = models.CharField(max_length=255)
+    sizes = ArrayField(models.CharField(max_length=20, choices=size_choices))
     quantity = models.PositiveIntegerField()
     in_stock = models.BooleanField(default=True)
     original_image = models.ImageField(

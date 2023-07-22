@@ -20,7 +20,7 @@ class ProductView(generics.ListCreateAPIView):
     filter_backends = [DjangoFilterBackend]
     pagination_class = ProductsPagination
     queryset = Product.objects.select_related('category').prefetch_related(
-        'colors', 'product_images').annotate(rating=Avg('product_rating__rating')).order_by('-created_at')
+        'colors', 'product_images').annotate(rating=Avg('product_rating')).order_by('-created_at')
 
     def post(self, request):
         serializer = AddProductSerializer(data=request.data)
