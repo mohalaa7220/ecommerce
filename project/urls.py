@@ -4,7 +4,8 @@ from django.conf.urls.static import static
 from django.conf import settings
 
 urlpatterns = [
-    path('silk/', include('silk.urls', namespace='silk')),
+    path("__debug__/", include("debug_toolbar.urls")),
+    # path('silk/', include('silk.urls', namespace='silk')),
     path('admin/', admin.site.urls),
     path('api/auth/', include('users.urls')),
     path('api/product/', include('products.urls')),

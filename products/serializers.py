@@ -1,9 +1,15 @@
 from django.db import transaction
 from rest_framework import serializers
-from .models import (Product, ProductImage, Colors,
+from .models import (Product, ProductImage, Colors, Sizes,
                      Category, SubCategory, Rating)
 from rest_framework.validators import ValidationError
 from django.db.models import Avg
+
+
+class SizesSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Sizes
+        fields = '__all__'
 
 
 class ProductImageSerializer(serializers.ModelSerializer):
@@ -88,9 +94,22 @@ class AddProductSerializer(serializers.ModelSerializer):
 
 
 class ProductSerializer(serializers.ModelSerializer):
+    rating = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Product
+        fields = ['id', 'name', 'desc', 'rating',
+                  'original_image_url', 'price']
+
+    def get_rating(self, obj):
+        return obj.rating
+
+
+class ProductDetailsSerializer(serializers.ModelSerializer):
     colors = ColorSerializer(many=True, read_only=True)
+    sizes = SizesSerializer(many=True, read_only=True)
     category = CategorySerializer(read_only=True)
-    product_images = ProductImageSerializer(many=True)
+    product_images = ProductImageSerializer(many=True, read_only=True)
     rating = serializers.SerializerMethodField()
 
     class Meta:

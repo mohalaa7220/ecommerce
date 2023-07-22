@@ -1,5 +1,6 @@
 from .serializers import (
-    AddProductSerializer, ProductSerializer, CategorySerializer, AddCategorySerializer, AddSubCategorySerializer, SubCategorySerializer, ParentCategorySerializer, ColorSerializer, AddRatingSerializer, RatingSerializer)
+    AddProductSerializer, ProductSerializer, ProductDetailsSerializer, CategorySerializer, AddCategorySerializer, AddSubCategorySerializer,
+    SubCategorySerializer, ParentCategorySerializer, ColorSerializer, AddRatingSerializer, RatingSerializer)
 from .models import (Product, Colors, Category, SubCategory, Rating)
 from .filtersProduct import ProductFilter
 from .cursorPagination import ProductsPagination
@@ -9,7 +10,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from project.CustomPermission import IsAdminOrReadOnly
 from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticated
 from django.shortcuts import get_object_or_404
-from django.db.models import Avg
+from django.db.models import Avg, Max
 
 
 # ========= Product View (add / get products) ========
@@ -19,8 +20,7 @@ class ProductView(generics.ListCreateAPIView):
     filterset_class = ProductFilter
     filter_backends = [DjangoFilterBackend]
     pagination_class = ProductsPagination
-    queryset = Product.objects.select_related('category').prefetch_related(
-        'colors', 'product_images').annotate(rating=Avg('product_rating')).order_by('-created_at')
+    queryset = Product.objects.all().annotate(rating=Max('product_rating'))
 
     def post(self, request):
         serializer = AddProductSerializer(data=request.data)
@@ -31,9 +31,9 @@ class ProductView(generics.ListCreateAPIView):
 
 class ProductDetails(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = [IsAdminOrReadOnly]
-    serializer_class = ProductSerializer
-    queryset = Product.objects.select_related('category').prefetch_related(
-        'colors', 'product_images').annotate(rating=Avg('product_rating__rating')).order_by('-created_at')
+    serializer_class = ProductDetailsSerializer
+    queryset = Product.objects.select_related(
+        'category').prefetch_related('colors', 'product_images', 'sizes').annotate(rating=Avg('product_rating'))
 
     def update(self, request, pk=None):
         product = self.get_object()

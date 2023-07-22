@@ -44,21 +44,17 @@ class Colors(models.Model):
         return self.name
 
 
+class Sizes(models.Model):
+    name = models.CharField(max_length=255)
+
+    def __str__(self):
+        return self.name
+
+
 class Product(models.Model):
-    price_choices = (
-        ('usd', 'usd'),
-        ('inr', 'inr'),
-    )
-
-    size_choices = (
-        ('small', 'small'),
-        ('medium', 'medium'),
-        ('large', 'large'),
-    )
-
     name = models.CharField(max_length=255)
     desc = models.TextField()
-    sizes = ArrayField(models.CharField(max_length=20, choices=size_choices))
+    sizes = models.ManyToManyField(Sizes, related_name='product_sizes')
     quantity = models.PositiveIntegerField()
     in_stock = models.BooleanField(default=True)
     original_image = models.ImageField(
@@ -91,14 +87,6 @@ class Product(models.Model):
 
     def __str__(self):
         return self.name
-
-
-# ========== delete_image_from_cloud ==============
-@receiver(pre_delete, sender=Product)
-def delete_image_from_cloud(sender, instance, **kwargs):
-    if instance.original_image_url:
-        print('delete_image_from_cloud')
-        cloudinary.uploader.destroy(instance.original_image_url)
 
 
 class Rating(models.Model):
