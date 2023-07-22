@@ -1,15 +1,15 @@
 from django.db import models
 from users.models import User
 from products.models import Product
-from django.db.models.signals import post_save
+from django.db.models.signals import m2m_changed
 from django.dispatch import receiver
+from django.db.models import F
 
 
 class Order(models.Model):
     user = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name='user_orders', blank=True, null=True)
-    products = models.ForeignKey(
-        Product, related_name='products_order', blank=True, null=True, on_delete=models.CASCADE)
+    products = models.ManyToManyField(Product, related_name='products_order')
     total_price = models.DecimalField(
         max_digits=10, decimal_places=2, blank=True, null=True)
     quantity = models.PositiveIntegerField(default=0)
@@ -19,10 +19,7 @@ class Order(models.Model):
         return f"Order #{self.pk} by {self.user.username}"
 
 
-@receiver(post_save, sender=Order)
-def decrement_product_quantity(sender, instance, created, **kwargs):
-    if created:
-        print(
-            f'================================ {instance.products} ===========')
-        instance.products.quantity -= instance.quantity
-        instance.products.save()
+@receiver(m2m_changed, sender=Order.products.through)
+def update_product_stock(sender, instance, action, **kwargs):
+    instance.products.all().update(quantity=F('quantity') - instance.quantity)
+    instance.products.filter(quantity__lte=0).update(in_stock=False)
